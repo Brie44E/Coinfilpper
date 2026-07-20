@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Biased Coin Betting Simulator</title>
+    <meta
+      name="description"
+      content="A browser simulation inspired by Victor Haghani and Richard Dewey's biased coin betting experiment."
+    >
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">60/40 biased coin</p>
+        <h1>Betting on a Biased Coin</h1>
+      </div>
+      <nav aria-label="Main navigation">
+        <a href="#simulator">Simulator</a>
+        <a href="#leaderboard">Highscore</a>
+        <a href="#paper">Paper</a>
+        <a href="#about">About</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Inspired by Victor Haghani and Richard Dewey</p>
+          <h2 id="hero-title">Can you turn $25 into $250 without going broke?</h2>
+          <p>
+            The coin lands heads 60% of the time. Choose a side, size each bet,
+            and see whether discipline beats noise.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#simulator">Play now</a>
+            <a
+              class="button secondary"
+              href="https://elmwealth.com/lessons-from-betting-on-a-biased-coin-cool-heads-and-cautionary-tales/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Read the essay
+            </a>
+          </div>
+        </div>
+        <div class="coin-stage" aria-hidden="true">
+          <div class="coin-orbit">
+            <div class="coin-face">H</div>
+          </div>
+          <div class="odds-card">
+            <span>Heads probability</span>
+            <strong>60%</strong>
+          </div>
+        </div>
+      </section>
+
+      <section id="simulator" class="workspace" aria-labelledby="simulator-title">
+        <div class="panel game-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Simulator</p>
+              <h2 id="simulator-title">Place a bet</h2>
+            </div>
+            <button id="new-game" class="icon-button" type="button" title="Start over" aria-label="Start over">
+              <svg aria-hidden="true" viewBox="0 0 24 24">
+                <path d="M20 11a8 8 0 1 0-2.34 5.66"></path>
+                <path d="M20 4v7h-7"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="coin-result" aria-live="polite">
+            <div id="coin" class="coin" data-side="H">H</div>
+            <p id="result-text">Start with $25. Bet any amount on heads or tails.</p>
+          </div>
+
+          <form id="bet-form" class="bet-form">
+            <fieldset>
+              <legend>Choose side</legend>
+              <div class="segmented">
+                <label>
+                  <input type="radio" name="side" value="heads" checked>
+                  <span>Heads</span>
+                </label>
+                <label>
+                  <input type="radio" name="side" value="tails">
+                  <span>Tails</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <label class="field" for="bet-amount">
+              <span>Bet amount</span>
+              <input id="bet-amount" name="amount" type="number" min="0.01" step="0.01" value="5.00">
+            </label>
+
+            <label class="field" for="bet-slider">
+              <span>Fraction of bankroll</span>
+              <input id="bet-slider" type="range" min="0" max="100" value="20">
+            </label>
+
+            <div class="quick-actions" aria-label="Quick bet sizes">
+              <button type="button" data-fraction="0.1">10%</button>
+              <button type="button" data-fraction="0.2">Kelly 20%</button>
+              <button type="button" data-fraction="0.5">50%</button>
+              <button type="button" data-fraction="1">All in</button>
+            </div>
+
+            <button id="flip-button" class="button primary wide" type="submit">Flip coin</button>
+          </form>
+        </div>
+
+        <aside class="panel stats-panel" aria-label="Current game stats">
+          <div class="stat-grid">
+            <div>
+              <span>Bankroll</span>
+              <strong id="bankroll">$25.00</strong>
+            </div>
+            <div>
+              <span>Flips</span>
+              <strong id="flips">0</strong>
+            </div>
+            <div>
+              <span>Profit</span>
+              <strong id="profit">$0.00</strong>
+            </div>
+            <div>
+              <span>Best run</span>
+              <strong id="best-run">$25.00</strong>
+            </div>
+          </div>
+
+          <div class="progress-block">
+            <div class="progress-label">
+              <span>Goal progress</span>
+              <strong id="goal-copy">$25 / $250</strong>
+            </div>
+            <div class="progress-track">
+              <div id="goal-progress" class="progress-fill"></div>
+            </div>
+          </div>
+
+          <div class="insight">
+            <h3>Kelly reference</h3>
+            <p>
+              For even-money odds with a 60% edge, full Kelly suggests betting
+              20% of current bankroll on heads.
+            </p>
+          </div>
+        </aside>
+
+        <section class="panel history-panel" aria-labelledby="history-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Flip log</p>
+              <h2 id="history-title">History</h2>
+            </div>
+            <button id="clear-history" class="ghost-button" type="button">Clear</button>
+          </div>
+          <ol id="history-list" class="history-list" aria-live="polite"></ol>
+        </section>
+      </section>
+
+      <section id="leaderboard" class="content-band" aria-labelledby="leaderboard-title">
+        <div class="section-heading">
+          <p class="eyebrow">Local browser storage</p>
+          <h2 id="leaderboard-title">Highscore</h2>
+        </div>
+        <div class="leaderboard-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Rank</th>
+                <th scope="col">Final bankroll</th>
+                <th scope="col">Flips</th>
+                <th scope="col">Date</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body"></tbody>
+          </table>
+          <button id="save-score" class="button secondary" type="button">Save current score</button>
+        </div>
+      </section>
+
+      <section id="paper" class="content-band split" aria-labelledby="paper-title">
+        <div>
+          <p class="eyebrow">Source material</p>
+          <h2 id="paper-title">The paper</h2>
+        </div>
+        <div class="copy-block">
+          <p>
+            This project is inspired by Victor Haghani and Richard Dewey's
+            biased coin experiment, which explored how people size bets under
+            uncertainty even when the odds are explicitly favorable.
+          </p>
+          <a
+            href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2856963"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open the SSRN paper
+          </a>
+        </div>
+      </section>
+
+      <section id="about" class="content-band split" aria-labelledby="about-title">
+        <div>
+          <p class="eyebrow">Editable section</p>
+          <h2 id="about-title">About</h2>
+        </div>
+        <div class="copy-block muted-box">
+          <p>
+            Add your notes here later: why you built the simulator, what a good
+            strategy looks like, or how the results compare with your friends.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Built as a free static site.</span>
+      <span>Coin probability: heads 60%, tails 40%.</span>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
